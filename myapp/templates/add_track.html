@@ -1,0 +1,7 @@
+<!-- myapp/templates/add_track.html -->
+<h1>Add Track</h1>
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Add Track</button>
+</form>

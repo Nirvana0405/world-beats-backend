@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Track List</title>
+</head>
+<body>
+    <h1>Track List</h1>
+    <ul>
+        {% for track in tracks %}
+            <li>{{ track.title }} - {{ track.artist }} - {{ track.genre }} - {{ track.release_date }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

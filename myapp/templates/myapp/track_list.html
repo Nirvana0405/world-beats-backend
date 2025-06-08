@@ -1,0 +1,7 @@
+<!-- myapp/templates/track_list.html -->
+<h1>Track List</h1>
+<ul>
+    {% for track in tracks %}
+        <li>{{ track.title }} by {{ track.artist }}</li>
+    {% endfor %}
+</ul>
