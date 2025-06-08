@@ -15,21 +15,21 @@ from .serializers import (
     TrackSerializer,
     PlayHistorySerializer,
     CommentSerializer,
-    MatchUserSerializer,  # ← ✅ 追加
+    MatchUserSerializer,
 )
 
 User = get_user_model()
 
-# ============================
-# 📄 トップページ
-# ============================
+# ----------------------------
+# トップページ（テスト用）
+# ----------------------------
 def top_view(request):
     return HttpResponse("🎷 WORLD_BEATS API トップページへようこそ！")
 
 
-# ============================
-# 🎵 Track 関連
-# ============================
+# ----------------------------
+# 🎵 トラック関連
+# ----------------------------
 class TrackListCreateView(generics.ListCreateAPIView):
     queryset = Track.objects.all()
     serializer_class = TrackSerializer
@@ -59,14 +59,20 @@ class UserTrackListView(generics.ListAPIView):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def top_liked_tracks(request):
-    tracks = Track.objects.annotate(num_likes=Count("track_likes")).order_by("-num_likes")[:10]
-    serializer = TrackSerializer(tracks, many=True, context={"request": request})
-    return Response(serializer.data)
+    try:
+        tracks = Track.objects.annotate(
+            num_likes=Count('track_likes')  # ← related_name='track_likes' が TrackLike に必要
+        ).order_by('-num_likes')[:10]
+
+        serializer = TrackSerializer(tracks, many=True, context={"request": request})
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 
 
-# ============================
-# ❤️ Like 関連
-# ============================
+# ----------------------------
+# ❤️ Like 機能
+# ----------------------------
 class LikeTrackView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -82,9 +88,9 @@ class LikeTrackView(APIView):
         return Response({'message': 'Like added'}, status=201)
 
 
-# ============================
-# ▶️ 再生履歴 関連
-# ============================
+# ----------------------------
+# ▶️ 再生履歴
+# ----------------------------
 class PlayHistoryListView(generics.ListAPIView):
     serializer_class = PlayHistorySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -101,9 +107,9 @@ class PlayHistoryCreateView(generics.CreateAPIView):
         serializer.save(user=self.request.user)
 
 
-# ============================
-# 💬 コメント 関連
-# ============================
+# ----------------------------
+# 💬 コメント機能
+# ----------------------------
 class CommentCreateView(generics.CreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -134,9 +140,9 @@ class CommentDeleteView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
 
-# ============================
-# 💘 マッチング 関連
-# ============================
+# ----------------------------
+# 💘 マッチング機能
+# ----------------------------
 class MatchListView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -149,18 +155,3 @@ class MatchListView(APIView):
 
         serializer = MatchUserSerializer(matched_users, many=True)
         return Response(serializer.data)
-
-
-
-
-# tracks/views.py
-from rest_framework import generics, permissions
-from .models import Like
-from .serializers import LikeSerializer
-
-class LikeTrackView(generics.CreateAPIView):
-    serializer_class = LikeSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(from_user=self.request.user)
