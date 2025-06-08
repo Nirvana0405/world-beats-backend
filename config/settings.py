@@ -10,7 +10,9 @@ SECRET_KEY = 'django-insecure-ih=v1z(#pjpn+1=dk8s0%zkm$)g*pc#5*!_3l6gmly$fu$8_m+
 # ⚠️ 本番環境では必ず False に
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'yourdomain.com']
+#ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'yourdomain.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'world-beats-backend.onrender.com']
+
 
 # 🧩 アプリケーション定義
 INSTALLED_APPS = [
@@ -129,3 +131,18 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # 🔧 主キー自動設定
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+import os
+import dj_database_url
+
+DEBUG = os.getenv("DEBUG", "False") == "True"
+SECRET_KEY = os.getenv("SECRET_KEY", "your-default-key")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+
+CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", "[]"))
+
+DATABASES = {
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+}
