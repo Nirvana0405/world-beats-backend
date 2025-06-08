@@ -1,24 +1,22 @@
-from pathlib import Path
 import os
 import json
+from pathlib import Path
+import dj_database_url
 
-
-# 📁 ベースディレクトリ
+# ===============================
+# 🔧 基本設定
+# ===============================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 🔐 セキュリティキー（開発用）
-SECRET_KEY = 'django-insecure-ih=v1z(#pjpn+1=dk8s0%zkm$)g*pc#5*!_3l6gmly$fu$8_m+'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key')
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
-# ⚠️ 本番環境では必ず False に
-DEBUG = True
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
-#ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'yourdomain.com']
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'world-beats-backend.onrender.com']
-
-
-# 🧩 アプリケーション定義
+# ===============================
+# 🔌 アプリケーション
+# ===============================
 INSTALLED_APPS = [
-    # Django 標準
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -26,13 +24,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # 外部パッケージ
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework.authtoken',
     'corsheaders',
 
-    # 自作アプリ
     'accounts',
     'tracks',
     'profiles',
@@ -42,9 +38,8 @@ INSTALLED_APPS = [
     'notifications',
 ]
 
-# 🌐 ミドルウェア
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # 必ず先頭に
+    'corsheaders.middleware.CorsMiddleware',  # ← 先頭に必要
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -54,10 +49,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# ルーティング
 ROOT_URLCONF = 'config.urls'
 
-# テンプレート設定
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -73,40 +66,23 @@ TEMPLATES = [
     },
 ]
 
-# WSGI アプリ
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# 🗄️ データベース設定（SQLite）
+# ===============================
+# 🗄️ データベース設定（Render or ローカル）
+# ===============================
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",  # fallback for local
+        conn_max_age=600
+    )
 }
 
-# 🔐 パスワードバリデーション
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-# 🌍 国際化
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
-
-# 📁 静的・メディアファイル
-STATIC_URL = 'static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-# ✅ カスタムユーザーモデル
+# ===============================
+# 🔐 認証とJWT
+# ===============================
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-# 🔐 JWT 認証設定
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -116,42 +92,37 @@ REST_FRAMEWORK = {
     ],
 }
 
-# 📧 メール設定（開発用）
+# ===============================
+# 🌍 国際化
+# ===============================
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+
+# ===============================
+# 📁 静的 & メディアファイル
+# ===============================
+STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# ===============================
+# 📧 メール設定
+# ===============================
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@example.com'
 
-# 🔗 Next.js 連携
-FRONTEND_URL = 'http://localhost:3000'
-
-# 🔓 CORS 許可設定（開発用）
-CORS_ALLOW_ALL_ORIGINS = True
-# 本番用：
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "https://your-frontend.com",
-# ]
-
-# 🔧 主キー自動設定
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-
-import os
-import dj_database_url
-
-DEBUG = os.getenv("DEBUG", "False") == "True"
-SECRET_KEY = os.getenv("SECRET_KEY", "your-default-key")
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-
-CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", "[]"))
-
-DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
-}
-
-
-
+# ===============================
+# 🔓 CORS設定
+# ===============================
 try:
     CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", "[]") or "[]")
 except json.JSONDecodeError:
     CORS_ALLOWED_ORIGINS = []
+
+# ===============================
+# 🔧 その他
+# ===============================
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
