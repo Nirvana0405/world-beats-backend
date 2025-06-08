@@ -148,3 +148,10 @@ CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", "[]"))
 DATABASES = {
     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
 }
+
+
+
+try:
+    CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", "[]") or "[]")
+except json.JSONDecodeError:
+    CORS_ALLOWED_ORIGINS = []
