@@ -17,3 +17,4 @@ gunicorn
 psycopg2-binary
 dj-database-url
 whitenoise
+python-dotenv==1.0.1
