@@ -128,3 +128,46 @@ class OtherUserProfilesView(generics.ListAPIView):
 
     def get_queryset(self):
         return Profile.objects.exclude(user=self.request.user)
+
+
+
+# profiles/views.py
+from rest_framework import generics, permissions, filters
+from .models import Profile
+from .serializers import ProfileSerializer
+
+class PublicProfileListView(generics.ListAPIView):
+    queryset = Profile.objects.select_related("user").all()
+    serializer_class = ProfileSerializer
+    permission_classes = [permissions.AllowAny]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['display_name', 'favorite_genres', 'favorite_artists']
+
+
+
+
+# profiles/views.py
+from rest_framework.generics import RetrieveAPIView
+from rest_framework.permissions import AllowAny
+from .models import Profile
+from .serializers import ProfileSerializer
+
+class ProfileDetailView(RetrieveAPIView):
+    queryset = Profile.objects.select_related("user")
+    serializer_class = ProfileSerializer
+    permission_classes = [AllowAny]
+
+
+
+
+# profiles/views.py
+
+from rest_framework.generics import RetrieveAPIView
+from accounts.models import Profile
+from accounts.serializers import PublicProfileSerializer
+
+class PublicProfileDetailView(RetrieveAPIView):
+    queryset = Profile.objects.select_related('user').all()
+    serializer_class = PublicProfileSerializer
+    lookup_field = 'user_id'  # URLのidに対応
+

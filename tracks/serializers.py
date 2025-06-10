@@ -90,3 +90,16 @@ class LikeSerializer(serializers.ModelSerializer):
         model = Like
         fields = ['id', 'from_user', 'to_user', 'created_at']
         read_only_fields = ['from_user', 'created_at']
+
+
+
+
+# tracks/serializers.py
+
+from rest_framework import serializers
+from .models import Track
+
+class SimpleTrackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Track
+        fields = ['id', 'title', 'artist', 'audio_file']

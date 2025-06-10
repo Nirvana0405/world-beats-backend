@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model
+# 標準ライブラリ
 from django.core.mail import send_mail
 from django.core.signing import dumps, loads, BadSignature, SignatureExpired
 from django.conf import settings
@@ -6,12 +6,15 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.views import View
 
+# Django/DRF
+from django.contrib.auth import get_user_model
+from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 
+# プロジェクト内
 from .models import CustomUser, Profile
 from .serializers import (
     RegisterSerializer,
@@ -20,7 +23,6 @@ from .serializers import (
 )
 
 User = get_user_model()
-
 
 # ✅ ユーザー登録（仮登録＋メール送信）
 class RegisterView(generics.CreateAPIView):
@@ -42,8 +44,7 @@ class RegisterView(generics.CreateAPIView):
             recipient_list=[user.email],
         )
 
-
-# ✅ アカウント有効化
+# ✅ アカウント有効化（トークンベース）
 def activate_user(request, token):
     try:
         username = loads(token, max_age=60 * 60 * 24)  # 24時間有効
@@ -56,8 +57,7 @@ def activate_user(request, token):
     except (User.DoesNotExist, BadSignature, SignatureExpired):
         return HttpResponse("無効なリンク、またはリンクの有効期限が切れています。", status=400)
 
-
-# ✅ 基本情報（User）
+# ✅ ユーザープロフィールの取得・更新（JSON）
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -66,7 +66,6 @@ class ProfileView(APIView):
         return Response(serializer.data)
 
     def patch(self, request):
-        # PATCH でプロフィール更新（Favorite genres など）
         profile, _ = Profile.objects.get_or_create(user=request.user)
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
@@ -74,8 +73,7 @@ class ProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-# ✅ プロフィール詳細（主に画像などMultipart用）
+# ✅ プロフィール画像など（Multipart用）
 class ProfileDetailView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -93,11 +91,68 @@ class ProfileDetailView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-# ✅ HTMLフォームベースの簡易ログイン（開発用）
+# ✅ HTMLベース簡易ログイン（開発用）
 class LoginView(View):
     def get(self, request):
         return render(request, "login.html")
 
     def post(self, request):
         return HttpResponse("ログイン成功")
+
+# ✅ アカウント退会（論理削除：is_active=False）
+class DeactivateAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        user.is_active = False  # 物理削除したい場合は user.delete()
+        user.save()
+        return Response({"message": "アカウントを削除しました。"}, status=204)
+
+
+
+
+# accounts/views.py
+class PublicProfileView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, user_id):
+        profile = get_object_or_404(Profile, user__id=user_id)
+        serializer = PublicProfileSerializer(profile)
+        return Response(serializer.data)
+
+
+
+
+
+# accounts/views.py など
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Profile
+from .serializers import ProfileSerializer
+
+class ProfileDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile = request.user.profile
+        serializer = ProfileSerializer(profile)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        profile = request.user.profile
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def put(self, request):
+        """画像アップロード用"""
+        profile = request.user.profile
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "画像を更新しました"})
+        return Response(serializer.errors, status=400)

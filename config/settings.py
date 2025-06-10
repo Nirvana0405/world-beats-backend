@@ -2,15 +2,23 @@ import os
 import json
 from pathlib import Path
 import dj_database_url
+from dotenv import load_dotenv
 
 # ===============================
-# 🔧 基本設定
+# 🔧 環境変数の読み込み
+# ===============================
+load_dotenv()
+
+# ===============================
+# 📁 パス設定
 # ===============================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ===============================
+# 🔐 セキュリティ設定
+# ===============================
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key')
-DEBUG = os.getenv("DEBUG", "False") == "True"
-
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # ===============================
@@ -38,9 +46,13 @@ INSTALLED_APPS = [
     'notifications',
 ]
 
+# ===============================
+# 🔧 ミドルウェア
+# ===============================
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # ← 先頭に必要
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # 静的ファイル用（本番用）
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -49,8 +61,25 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# ===============================
+# 🔗 URL & WSGI
+# ===============================
 ROOT_URLCONF = 'config.urls'
+WSGI_APPLICATION = 'config.wsgi.application'
 
+# ===============================
+# 🗄️ データベース
+# ===============================
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        conn_max_age=600
+    )
+}
+
+# ===============================
+# 🖼️ テンプレート
+# ===============================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -66,20 +95,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
-
 # ===============================
-# 🗄️ データベース設定（Render or ローカル）
-# ===============================
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",  # fallback for local
-        conn_max_age=600
-    )
-}
-
-# ===============================
-# 🔐 認証とJWT
+# 🔐 認証設定
 # ===============================
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
@@ -103,12 +120,14 @@ USE_TZ = True
 # ===============================
 # 📁 静的 & メディアファイル
 # ===============================
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ===============================
-# 📧 メール設定
+# 📧 メール設定（開発用）
 # ===============================
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@example.com'
@@ -117,9 +136,13 @@ DEFAULT_FROM_EMAIL = 'noreply@example.com'
 # 🔓 CORS設定
 # ===============================
 try:
-    CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", "[]") or "[]")
-except json.JSONDecodeError:
-    CORS_ALLOWED_ORIGINS = []
+    CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", "[]"))
+    if not CORS_ALLOWED_ORIGINS:
+        raise ValueError
+except (json.JSONDecodeError, ValueError):
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+    ]
 
 # ===============================
 # 🔧 その他

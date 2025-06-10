@@ -56,3 +56,51 @@ class TrackSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.likes.filter(user=request.user).exists()
         return False
+
+
+
+
+
+# accounts/serializers.py
+class PublicProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username")
+
+    class Meta:
+        model = Profile
+        fields = ["username", "display_name", "bio", "favorite_genres", "favorite_artists", "icon"]
+
+
+
+
+# accounts/serializers.py
+
+from rest_framework import serializers
+from .models import Profile
+from tracks.serializers import SimpleTrackSerializer
+
+class PublicProfileSerializer(serializers.ModelSerializer):
+    tracks = SimpleTrackSerializer(source='user.track_set', many=True, read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ['user_id', 'display_name', 'bio', 'icon', 'favorite_genres', 'favorite_artists', 'tracks']
+
+
+
+
+# accounts/serializers.py など
+from rest_framework import serializers
+from .models import Profile
+
+class ProfileSerializer(serializers.ModelSerializer):
+    icon = serializers.ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = Profile
+        fields = [
+            "display_name",
+            "bio",
+            "favorite_genres",
+            "favorite_artists",
+            "icon",  # ← 追加
+        ]

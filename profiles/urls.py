@@ -84,3 +84,36 @@ urlpatterns = [
 
 
 
+
+
+# profiles/urls.py
+from django.urls import path
+from .views import PublicProfileListView
+
+urlpatterns = [
+    path('', PublicProfileListView.as_view(), name='public-profile-list'),
+]
+
+
+
+
+# profiles/urls.py
+from django.urls import path
+from .views import ProfileDetailView
+
+urlpatterns = [
+    path('<int:pk>/', ProfileDetailView.as_view(), name='profile-detail'),
+]
+
+
+
+
+
+# profiles/urls.py
+
+from django.urls import path
+from .views import PublicProfileDetailView
+
+urlpatterns = [
+    path('<int:user_id>/', PublicProfileDetailView.as_view(), name='public-profile-detail'),
+]
