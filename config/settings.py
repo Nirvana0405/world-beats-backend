@@ -52,7 +52,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # 静的ファイル用（本番用）
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -133,16 +133,20 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@example.com'
 
 # ===============================
-# 🔓 CORS設定
+# 🔓 CORS設定（開発・本番切替対応）
 # ===============================
-try:
-    CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", "[]"))
-    if not CORS_ALLOWED_ORIGINS:
-        raise ValueError
-except (json.JSONDecodeError, ValueError):
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000",
-    ]
+CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "False").lower() == "true"
+
+if not CORS_ALLOW_ALL_ORIGINS:
+    try:
+        CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", "[]"))
+        if not CORS_ALLOWED_ORIGINS:
+            raise ValueError
+    except (json.JSONDecodeError, ValueError):
+        CORS_ALLOWED_ORIGINS = [
+            "http://localhost:3000",
+            "https://world-beats-frontend-d5ix.vercel.app",
+        ]
 
 # ===============================
 # 🔧 その他
