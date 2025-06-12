@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
+load_dotenv()
 
 # ===============================
 # 🔧 環境変数の読み込み
@@ -135,21 +136,30 @@ DEFAULT_FROM_EMAIL = 'noreply@example.com'
 # ===============================
 # 🔓 CORS設定（開発・本番切替対応）
 # ===============================
+# ===============================
+# 🔓 CORS設定（開発・本番切替対応）
+# ===============================
 CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "False").lower() == "true"
 
-if not CORS_ALLOW_ALL_ORIGINS:
+if CORS_ALLOW_ALL_ORIGINS:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
     try:
-        CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", "[]"))
-        if not CORS_ALLOWED_ORIGINS:
-            raise ValueError
-    except (json.JSONDecodeError, ValueError):
+        # 環境変数から読み込む（例: '["http://localhost:3000", "https://your-frontend.vercel.app"]'）
+        CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS"))
+    except (json.JSONDecodeError, TypeError):
+        # fallback：ローカル・Vercel用
         CORS_ALLOWED_ORIGINS = [
             "http://localhost:3000",
             "https://world-beats-frontend-d5ix.vercel.app",
         ]
+
 
 # ===============================
 # 🔧 その他
 # ===============================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+
+#CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", '["http://localhost:3000"]'))

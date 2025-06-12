@@ -7,6 +7,7 @@ from .views import (
     ProfileView,
     ProfileDetailView,
     DeactivateAccountView,
+    PublicProfileView,  # ← 追加
 )
 
 urlpatterns = [
@@ -29,14 +30,7 @@ urlpatterns = [
 
     # ❌ アカウント退会（DELETEで is_active=False）
     path("deactivate/", DeactivateAccountView.as_view(), name="deactivate-account"),
-]
 
-
-
-
-# accounts/urls.py
-from .views import PublicProfileView
-
-urlpatterns += [
-    path("public-profile/<int:user_id>/", PublicProfileView.as_view(), name="public-profile"),
+    # 🌍 他人のプロフィール閲覧
+    path("profiles/<int:user_id>/", PublicProfileView.as_view(), name="public-profile"),
 ]

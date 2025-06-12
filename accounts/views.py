@@ -3,7 +3,7 @@ from django.core.mail import send_mail
 from django.core.signing import dumps, loads, BadSignature, SignatureExpired
 from django.conf import settings
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views import View
 
 # Django/DRF
@@ -15,11 +15,12 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 
 # プロジェクト内
-from .models import CustomUser, Profile
+from .models import Profile
 from .serializers import (
     RegisterSerializer,
     UserSerializer,
     ProfileSerializer,
+    PublicProfileSerializer,
 )
 
 User = get_user_model()
@@ -31,12 +32,10 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     def perform_create(self, serializer):
-        user = serializer.save()
-        user.is_active = False
-        user.save()
-
+        user = serializer.save(is_active=False)
         token = dumps(user.username)
         activation_url = f"{settings.FRONTEND_URL}/activate/{token}/"
+
         send_mail(
             subject="アカウント有効化リンク",
             message=f"以下のリンクをクリックしてアカウントを有効化してください:\n{activation_url}",
@@ -88,7 +87,7 @@ class ProfileDetailView(APIView):
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response({"message": "画像を更新しました"})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # ✅ HTMLベース簡易ログイン（開発用）
@@ -99,20 +98,16 @@ class LoginView(View):
     def post(self, request):
         return HttpResponse("ログイン成功")
 
-# ✅ アカウント退会（論理削除：is_active=False）
+# ✅ アカウント退会（論理削除）
 class DeactivateAccountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request):
-        user = request.user
-        user.is_active = False  # 物理削除したい場合は user.delete()
-        user.save()
+        request.user.is_active = False
+        request.user.save()
         return Response({"message": "アカウントを削除しました。"}, status=204)
 
-
-
-
-# accounts/views.py
+# ✅ 公開プロフィール表示
 class PublicProfileView(APIView):
     permission_classes = [AllowAny]
 
@@ -120,39 +115,3 @@ class PublicProfileView(APIView):
         profile = get_object_or_404(Profile, user__id=user_id)
         serializer = PublicProfileSerializer(profile)
         return Response(serializer.data)
-
-
-
-
-
-# accounts/views.py など
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import Profile
-from .serializers import ProfileSerializer
-
-class ProfileDetailView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        profile = request.user.profile
-        serializer = ProfileSerializer(profile)
-        return Response(serializer.data)
-
-    def patch(self, request):
-        profile = request.user.profile
-        serializer = ProfileSerializer(profile, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
-
-    def put(self, request):
-        """画像アップロード用"""
-        profile = request.user.profile
-        serializer = ProfileSerializer(profile, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "画像を更新しました"})
-        return Response(serializer.errors, status=400)
