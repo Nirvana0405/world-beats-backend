@@ -126,21 +126,34 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ===============================
-# 📧 メール設定（開発 or 本番に応じて変更）
+# 📧 メール設定
 # ===============================
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@example.com")
 
 # ===============================
-# 🔓 CORS 設定
+# 🔓 CORS 設定（フロントからの通信を許可）
 # ===============================
-CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "False").lower() == "true"
+CORS_ALLOW_ALL_ORIGINS = False
 
-if not CORS_ALLOW_ALL_ORIGINS:
-    CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+CORS_ALLOWED_ORIGINS = [
+    "https://world-beats-frontend-gkq8.vercel.app",
+    "https://world-beats-frontend-d5ix.vercel.app",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
 
 # ===============================
-# 🌐 フロントエンドURL（メールリンクなどに使用）
+# 🌐 フロントエンドURL（メールリンクなど）
 # ===============================
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
