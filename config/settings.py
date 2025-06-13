@@ -136,6 +136,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = [
     "https://world-beats-frontend-d5ix-40btfnxxz-nirvana0405s-projects.vercel.app",
+    "https://world-beats-frontend-gkq8.vercel.app", 
 ]
 
 

@@ -19,7 +19,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 
 # ===========================
-# 🏗️ アプリケーション
+# 📦 アプリケーション
 # ===========================
 from .models import Profile
 from .serializers import (
@@ -33,7 +33,7 @@ User = get_user_model()
 ACTIVATION_TOKEN_EXPIRY = 60 * 60 * 24  # 24時間（秒）
 
 # ===========================
-# 🔐 仮登録＋メール送信
+# 📨 ユーザー登録 + メール送信
 # ===========================
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -45,7 +45,6 @@ class RegisterView(generics.CreateAPIView):
         token = dumps(user.username)
         activation_url = f"{settings.FRONTEND_URL}/activate/{token}/"
 
-        # 🔔 ログ出力（開発用）
         print("🔗 アクティベーションリンク:", activation_url)
 
         send_mail(
@@ -56,22 +55,27 @@ class RegisterView(generics.CreateAPIView):
         )
 
 # ===========================
-# ✅ アクティベーション処理
+# ✅ アクティベーション（API版）
 # ===========================
-def activate_user(request, token):
-    try:
-        username = loads(token, max_age=ACTIVATION_TOKEN_EXPIRY)
-        user = User.objects.get(username=username)
-        if not user.is_active:
+class ActivateAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, token):
+        try:
+            username = loads(token, max_age=ACTIVATION_TOKEN_EXPIRY)
+            user = User.objects.get(username=username)
+            if user.is_active:
+                return Response({"detail": "すでに有効化済みです。"}, status=400)
             user.is_active = True
             user.save()
-            return HttpResponse("✅ アカウントが有効化されました！")
-        return HttpResponse("⚠️ すでに有効化済みです。")
-    except (User.DoesNotExist, BadSignature, SignatureExpired):
-        return HttpResponse("❌ 無効または期限切れのリンクです。", status=400)
+            return Response({"detail": "✅ アカウントが有効化されました！"}, status=200)
+        except SignatureExpired:
+            return Response({"detail": "リンクの有効期限が切れています。"}, status=400)
+        except (BadSignature, User.DoesNotExist):
+            return Response({"detail": "無効なリンクです。"}, status=400)
 
 # ===========================
-# 🔍 プロフィール取得/更新
+# 👤 プロフィール関連
 # ===========================
 def get_or_create_profile(user):
     return Profile.objects.get_or_create(user=user)[0]
@@ -90,9 +94,6 @@ class ProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
 
-# ===========================
-# 🖼️ プロフィール画像対応
-# ===========================
 class ProfileDetailView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -110,7 +111,7 @@ class ProfileDetailView(APIView):
         return Response(serializer.errors, status=400)
 
 # ===========================
-# 🧪 テスト用ログインページ
+# 🚪 テスト用ログイン画面
 # ===========================
 class LoginView(View):
     def get(self, request):
@@ -131,7 +132,7 @@ class DeactivateAccountView(APIView):
         return Response({"message": "アカウントを削除しました。"}, status=204)
 
 # ===========================
-# 🌐 他人プロフィール公開用
+# 🌍 他人プロフィール公開
 # ===========================
 class PublicProfileView(APIView):
     permission_classes = [AllowAny]
