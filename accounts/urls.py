@@ -32,3 +32,13 @@ urlpatterns = [
     # 🌍 他人プロフィール
     path("profiles/<int:user_id>/", PublicProfileView.as_view(), name="public-profile"),
 ]
+
+
+
+
+from .views import ActivateAPIView
+
+urlpatterns = [
+    # 他のパスも省略...
+    path("activate/<str:token>/", ActivateAPIView.as_view(), name="activate-user"),
+]

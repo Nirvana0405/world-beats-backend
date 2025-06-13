@@ -1,5 +1,7 @@
+# accounts/views.py
+
 # ===========================
-# 📦 標準ライブラリ
+# 📆 標準ライブラリ
 # ===========================
 from django.core.mail import send_mail
 from django.core.signing import dumps, loads, BadSignature, SignatureExpired
@@ -12,14 +14,14 @@ from django.views import View
 # 🔧 Django / DRF
 # ===========================
 from django.contrib.auth import get_user_model
-from rest_framework import generics, status
+from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
 
 # ===========================
-# 📦 アプリケーション
+# 📆 アプリケーション
 # ===========================
 from .models import Profile
 from .serializers import (
@@ -33,7 +35,7 @@ User = get_user_model()
 ACTIVATION_TOKEN_EXPIRY = 60 * 60 * 24  # 24時間（秒）
 
 # ===========================
-# 📨 ユーザー登録 + メール送信
+# 📩 ユーザー登録 + メール送信
 # ===========================
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -55,7 +57,7 @@ class RegisterView(generics.CreateAPIView):
         )
 
 # ===========================
-# ✅ アクティベーション（API版）
+# ✅ アクティベーション
 # ===========================
 class ActivateAPIView(APIView):
     permission_classes = [AllowAny]
@@ -64,18 +66,22 @@ class ActivateAPIView(APIView):
         try:
             username = loads(token, max_age=ACTIVATION_TOKEN_EXPIRY)
             user = User.objects.get(username=username)
+
             if user.is_active:
-                return Response({"detail": "すでに有効化済みです。"}, status=400)
+                return Response({"detail": "⚠️ このアカウントはすでに有効化されています。"}, status=200)
+
             user.is_active = True
             user.save()
             return Response({"detail": "✅ アカウントが有効化されました！"}, status=200)
+
         except SignatureExpired:
-            return Response({"detail": "リンクの有効期限が切れています。"}, status=400)
+            return Response({"detail": "❌ リンクの有効期限が切れています。"}, status=400)
+
         except (BadSignature, User.DoesNotExist):
-            return Response({"detail": "無効なリンクです。"}, status=400)
+            return Response({"detail": "❌ 無効なリンクです。"}, status=400)
 
 # ===========================
-# 👤 プロフィール関連
+# 👤 プロフィール
 # ===========================
 def get_or_create_profile(user):
     return Profile.objects.get_or_create(user=user)[0]
@@ -111,7 +117,7 @@ class ProfileDetailView(APIView):
         return Response(serializer.errors, status=400)
 
 # ===========================
-# 🚪 テスト用ログイン画面
+# 🚪 ログイン画面
 # ===========================
 class LoginView(View):
     def get(self, request):
@@ -121,7 +127,7 @@ class LoginView(View):
         return HttpResponse("ログイン成功")
 
 # ===========================
-# ❌ アカウント論理削除
+# ❌ アカウント削除
 # ===========================
 class DeactivateAccountView(APIView):
     permission_classes = [IsAuthenticated]
@@ -132,7 +138,7 @@ class DeactivateAccountView(APIView):
         return Response({"message": "アカウントを削除しました。"}, status=204)
 
 # ===========================
-# 🌍 他人プロフィール公開
+# 🌍 他人プロフィール
 # ===========================
 class PublicProfileView(APIView):
     permission_classes = [AllowAny]
