@@ -1,9 +1,7 @@
 import os
-import json
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
-load_dotenv()
 
 # ===============================
 # 🔧 環境変数の読み込み
@@ -18,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ===============================
 # 🔐 セキュリティ設定
 # ===============================
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key')
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -114,7 +112,7 @@ REST_FRAMEWORK = {
 # 🌍 国際化
 # ===============================
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tokyo'
 USE_I18N = True
 USE_TZ = True
 
@@ -128,38 +126,25 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ===============================
-# 📧 メール設定（開発用）
+# 📧 メール設定（開発 or 本番に応じて変更）
 # ===============================
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@example.com'
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@example.com")
 
 # ===============================
-# 🔓 CORS設定（開発・本番切替対応）
-# ===============================
-# ===============================
-# 🔓 CORS設定（開発・本番切替対応）
+# 🔓 CORS 設定
 # ===============================
 CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "False").lower() == "true"
 
-if CORS_ALLOW_ALL_ORIGINS:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    try:
-        # 環境変数から読み込む（例: '["http://localhost:3000", "https://your-frontend.vercel.app"]'）
-        CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS"))
-    except (json.JSONDecodeError, TypeError):
-        # fallback：ローカル・Vercel用
-        CORS_ALLOWED_ORIGINS = [
-            "http://localhost:3000",
-            "https://world-beats-frontend-d5ix.vercel.app",
-        ]
+if not CORS_ALLOW_ALL_ORIGINS:
+    CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
 
+# ===============================
+# 🌐 フロントエンドURL（メールリンクなどに使用）
+# ===============================
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 # ===============================
 # 🔧 その他
 # ===============================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-
-
-#CORS_ALLOWED_ORIGINS = json.loads(os.getenv("CORS_ALLOWED_ORIGINS", '["http://localhost:3000"]'))
