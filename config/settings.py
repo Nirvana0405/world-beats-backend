@@ -131,14 +131,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@example.com")
 
-# ===============================
 # 🔓 CORS 設定（フロントからの通信を許可）
-# ===============================
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "https://world-beats-frontend-gkq8.vercel.app",
+    "https://world-beats-frontend-d5ix-40btfnxxz-nirvana0405s-projects.vercel.app",
 ]
+
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -151,6 +150,7 @@ CORS_ALLOW_METHODS = [
     "OPTIONS",
 ]
 
+
 # ===============================
 # 🌐 フロントエンドURL（メールリンクなど）
 # ===============================
@@ -160,3 +160,7 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 # 🔧 その他
 # ===============================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
