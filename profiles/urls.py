@@ -117,3 +117,14 @@ from .views import PublicProfileDetailView
 urlpatterns = [
     path('<int:user_id>/', PublicProfileDetailView.as_view(), name='public-profile-detail'),
 ]
+
+
+
+
+# profiles/urls.py
+from django.urls import path
+from .views import MyProfileView
+
+urlpatterns = [
+    path("me/", MyProfileView.as_view(), name="my-profile"),
+]

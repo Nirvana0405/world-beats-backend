@@ -33,3 +33,12 @@ urlpatterns = [
 # メディアファイル配信（開発時のみ）
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
+
+
+# config/urls.py
+urlpatterns = [
+    path("api/profiles/", include("profiles.urls")),  # ← ✅これが必要
+]
