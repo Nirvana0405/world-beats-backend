@@ -155,3 +155,45 @@ class MatchListView(APIView):
 
         serializer = MatchUserSerializer(matched_users, many=True)
         return Response(serializer.data)
+
+
+
+# tracks/views.py などの Like API の中で使用
+
+from matches.utils import create_match_if_mutual
+
+class LikeTrackView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, track_id):
+        track = get_object_or_404(Track, id=track_id)
+        to_user = track.uploaded_by
+        from_user = request.user
+
+        # すでにLikeしていたら削除（トグル式にする場合）
+        existing = Like.objects.filter(from_user=from_user, to_user=to_user, track=track)
+        if existing.exists():
+            existing.delete()
+            return Response({"message": "💔 Likeを取り消しました"}, status=200)
+
+        # Likeを新規作成
+        Like.objects.create(from_user=from_user, to_user=to_user, track=track)
+
+        # 💡 マッチング成立していれば Match を作成
+        create_match_if_mutual(from_user, to_user)
+
+        return Response({"message": "❤️ Likeしました"}, status=201)
+
+
+
+from matches.utils import create_match_if_mutual
+
+
+
+
+# tracks/views.py
+
+from django.http import HttpResponse
+
+def top_view(request):
+    return HttpResponse("🎵 World Beats API サーバーは動作中です")

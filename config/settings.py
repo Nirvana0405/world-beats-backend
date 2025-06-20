@@ -167,3 +167,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
+CORS_ALLOWED_ORIGINS = [
+    "https://world-beats-frontend-gkq8.vercel.app"
+]

@@ -122,6 +122,20 @@ urlpatterns = [
 
 
 
+# profiles/urls.py
+
+from django.urls import path
+from .views import (
+    ProfileRetrieveUpdateView,       # /api/profiles/me/
+    PublicProfileDetailView,         # /api/profiles/<user_id>/
+    OtherUserProfilesView            # /api/profiles/others/
+)
+
+urlpatterns = [
+    path("me/", ProfileRetrieveUpdateView.as_view(), name="my-profile"),  # ✅ フロントが叩いてるURL
+    path("<int:user_id>/", PublicProfileDetailView.as_view(), name="public-profile"),
+    path("others/", OtherUserProfilesView.as_view(), name="other-profiles"),
+]
 
 
 

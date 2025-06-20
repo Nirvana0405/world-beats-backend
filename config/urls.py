@@ -37,3 +37,30 @@ if settings.DEBUG:
 
 
 
+
+# config/urls.py
+
+urlpatterns = [
+    # ...
+    path('api/notifications/', include('notifications.urls')),
+]
+
+
+
+
+# config/urls.py
+
+from django.contrib import admin
+from django.urls import path, include
+from tracks.views import top_view  # ← 追加
+
+urlpatterns = [
+    path('', top_view),  # ✅ トップページ
+    path('admin/', admin.site.urls),
+    path('api/accounts/', include('accounts.urls')),
+    path('api/tracks/', include('tracks.urls')),
+    path('api/profiles/', include('profiles.urls')),
+    path('api/matches/', include('matches.urls')),
+    path('api/dms/', include('dms.urls')),
+    path('api/notifications/', include('notifications.urls')),
+]

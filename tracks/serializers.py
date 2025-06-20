@@ -103,3 +103,19 @@ class SimpleTrackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Track
         fields = ['id', 'title', 'artist', 'audio_file']
+
+
+
+
+# tracks/serializers.py
+
+class TrackSerializer(serializers.ModelSerializer):
+    is_liked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Track
+        fields = ['id', 'title', 'audio_file', 'uploaded_by', 'like_count', 'is_liked']
+
+    def get_is_liked(self, obj):
+        user = self.context['request'].user
+        return Like.objects.filter(from_user=user, track=obj).exists()

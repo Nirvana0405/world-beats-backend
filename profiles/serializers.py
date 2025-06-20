@@ -42,3 +42,24 @@ class PublicProfileSerializer(serializers.ModelSerializer):
             'favorite_artists',
             'tracks',
         ]
+
+
+
+
+
+# profiles/serializers.py
+
+from matches.models import Match
+
+class PublicProfileSerializer(serializers.ModelSerializer):
+    is_matched = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'display_name', 'bio', 'favorite_genres', 'icon', 'is_matched']
+
+    def get_is_matched(self, obj):
+        user = self.context['request'].user
+        other_user = obj.user
+        u1, u2 = sorted([user, other_user], key=lambda x: x.id)
+        return Match.objects.filter(user1=u1, user2=u2).exists()
