@@ -1,8 +1,3 @@
-# accounts/views.py
-
-# ===========================
-# 📆 標準ライブラリ
-# ===========================
 from django.core.mail import send_mail
 from django.core.signing import dumps, loads, BadSignature, SignatureExpired
 from django.conf import settings
@@ -10,19 +5,14 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 
-# ===========================
-# 🔧 Django / DRF
-# ===========================
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import status
 
-# ===========================
-# 📆 アプリケーション
-# ===========================
 from .models import Profile
 from .serializers import (
     RegisterSerializer,
@@ -32,10 +22,16 @@ from .serializers import (
 )
 
 User = get_user_model()
-ACTIVATION_TOKEN_EXPIRY = 60 * 60 * 24  # 24時間（秒）
+ACTIVATION_TOKEN_EXPIRY = 60 * 60 * 24  # 24時間
 
 # ===========================
-# 📩 ユーザー登録 + メール送信
+# 📅 プロファイル必要なら生成
+# ===========================
+def get_or_create_profile(user):
+    return Profile.objects.get_or_create(user=user)[0]
+
+# ===========================
+# 📩 仮登録 + メール送信
 # ===========================
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -57,7 +53,7 @@ class RegisterView(generics.CreateAPIView):
         )
 
 # ===========================
-# ✅ アクティベーション
+# ✅ 有効化
 # ===========================
 class ActivateAPIView(APIView):
     permission_classes = [AllowAny]
@@ -76,16 +72,12 @@ class ActivateAPIView(APIView):
 
         except SignatureExpired:
             return Response({"detail": "❌ リンクの有効期限が切れています。"}, status=400)
-
         except (BadSignature, User.DoesNotExist):
             return Response({"detail": "❌ 無効なリンクです。"}, status=400)
 
 # ===========================
 # 👤 プロフィール
 # ===========================
-def get_or_create_profile(user):
-    return Profile.objects.get_or_create(user=user)[0]
-
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -146,3 +138,13 @@ class PublicProfileView(APIView):
     def get(self, request, user_id):
         profile = get_object_or_404(Profile, user__id=user_id)
         return Response(PublicProfileSerializer(profile).data)
+
+# ===========================
+# 🔄 GET/PUT プロフィール (me)
+# ===========================
+class ProfileRetrieveUpdateView(generics.RetrieveUpdateAPIView):
+    serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return get_or_create_profile(self.request.user)
