@@ -131,18 +131,29 @@ MEDIA_ROOT = BASE_DIR / 'media'
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@example.com")
 
-# 🔓 CORS 設定（フロントからの通信を許可）
+# ===============================
+# 🌐 フロントエンドURL
+# ===============================
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+# ===============================
+# 🔓 CORS 設定
+# ===============================
 CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "https://world-beats-frontend-d5ix-evkpstd9m-nirvana0405s-projects.vercel.app",  # ← このURLを追加
-    "https://world-beats-frontend-d5ix-40btfnxxz-nirvana0405s-projects.vercel.app",  # ← これも一応残す
+    # 本番環境
+    "https://world-beats-frontend-d5ix-jrd8jvlzm-nirvana0405s-projects.vercel.app",
     "https://world-beats-frontend-gkq8.vercel.app",
+
+    # 過去のデプロイURL
+    "https://world-beats-frontend-d5ix-evkpstd9m-nirvana0405s-projects.vercel.app",
+    "https://world-beats-frontend-d5ix-40btfnxxz-nirvana0405s-projects.vercel.app",
+
+    # ローカル開発
+    "http://localhost:3000",
 ]
-
-
-
-CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = [
     "GET",
@@ -153,27 +164,7 @@ CORS_ALLOW_METHODS = [
     "OPTIONS",
 ]
 
-
-# ===============================
-# 🌐 フロントエンドURL（メールリンクなど）
-# ===============================
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-
 # ===============================
 # 🔧 その他
 # ===============================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-
-
-CORS_ALLOWED_ORIGINS = [
-    "https://world-beats-frontend-gkq8.vercel.app"
-]
-
-
-
-CORS_ALLOWED_ORIGINS = [
-    "https://world-beats-frontend-d5ix-jrd8jvlzm-nirvana0405s-projects.vercel.app",
-    "https://world-beats-frontend-gkq8.vercel.app",
-]
