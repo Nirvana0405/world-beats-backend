@@ -72,3 +72,20 @@ class OtherUserProfileView(APIView):
         profile = get_object_or_404(Profile, user__id=user_id)
         serializer = ProfileSerializer(profile)
         return Response(serializer.data)
+
+
+
+
+# profiles/views.py に追記
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from .models import Profile
+from .serializers import ProfileSerializer
+
+class UserProfileView(generics.RetrieveUpdateAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return Profile.objects.get(user=self.request.user)
