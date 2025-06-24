@@ -23,8 +23,10 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ['id', 'user', 'avatar', 'bio']
-        read_only_fields = ['id']
+        fields = [
+            'id', 'user', 'display_name', 'bio',
+            'favorite_genres', 'favorite_artists', 'icon'
+        ]
 
 # 🔹 他人のプロフィール公開用（＋投稿一覧つき）
 class PublicProfileSerializer(serializers.ModelSerializer):

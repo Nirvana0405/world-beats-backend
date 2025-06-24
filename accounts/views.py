@@ -148,3 +148,17 @@ class ProfileRetrieveUpdateView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return get_or_create_profile(self.request.user)
+
+
+
+
+
+
+# ✅ ユーザー本人のプロフィールを取得・更新するView
+class ProfileRetrieveUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.profile
